@@ -1,0 +1,145 @@
+<style>
+.luxury-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40px;
+  max-width: 1200px;
+  margin: 40px auto;
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.4s ease;
+  position: relative;
+}
+.luxury-text {
+  flex: 1;
+  padding-right: 30px;
+}
+.luxury-text h2 {
+  font-size: 32px;
+  color: #111;
+  margin-bottom: 15px;
+}
+.luxury-text p {
+  font-size: 18px;
+  color: #444;
+}
+.luxury-gallery {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+.luxury-item {
+  width: 140px;
+  text-align: center;
+}
+.luxury-item img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+}
+.luxury-item img:hover {
+  transform: scale(1.05);
+}
+.luxury-item p {
+  font-size: 14px;
+  color: #333;
+  margin-top: 5px;
+}
+@media screen and (max-width: 768px) {
+  .luxury-container {
+    flex-direction: column;
+    padding: 20px;
+  }
+  .luxury-text {
+    padding-right: 0;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+}
+</style>
+
+<div id="luxurySection" class="luxury-container">
+  <div class="luxury-text">
+    <h2>Discover Luxury</h2>
+    <p>Experience the finest in luxury living with PortaFlux's curated selection of high-end properties and exclusive events.</p>
+  </div>
+  <div class="luxury-gallery" id="luxuryGallery">
+    <div class="luxury-item" id="item0">
+      <img src="" alt="Luxury Property 1" loading="lazy" />
+      <p></p>
+    </div>
+    <div class="luxury-item" id="item1">
+      <img src="" alt="Luxury Property 2" loading="lazy" />
+      <p></p>
+    </div>
+    <div class="luxury-item" id="item2">
+      <img src="" alt="Luxury Property 3" loading="lazy" />
+      <p></p>
+    </div>
+    <div class="luxury-item" id="item3">
+      <img src="" alt="Luxury Property 4" loading="lazy" />
+      <p></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const items = [
+  document.getElementById('item0'),
+  document.getElementById('item1'),
+  document.getElementById('item2'),
+  document.getElementById('item3'),
+];
+
+let imagesPool = [];
+let timers = [];
+
+async function fetchLuxuryImages() {
+  try {
+    const res = await fetch('/.netlify/functions/fetchLuxury');
+    const data = await res.json();
+    if (!data.results || data.results.length === 0) {
+      console.warn('No luxury images found.');
+      return;
+    }
+    imagesPool = data.results;
+
+    for (let i = 0; i < items.length; i++) {
+      updateItemImage(i);
+      if (timers[i]) clearInterval(timers[i]);
+      timers[i] = setInterval(() => updateItemImage(i), 60000);
+    }
+  } catch (e) {
+    console.error('Failed to fetch luxury images:', e);
+  }
+}
+
+function updateItemImage(index) {
+  if (imagesPool.length === 0) return;
+  let attempts = 0;
+  while (attempts < 10) {
+    const randIndex = Math.floor(Math.random() * imagesPool.length);
+    const image = imagesPool[randIndex];
+    if (image.image) {
+      const imgEl = items[index].querySelector('img');
+      const pEl = items[index].querySelector('p');
+      imgEl.src = image.image;
+      imgEl.alt = image.title || "Luxury Property";
+      pEl.textContent = image.description || "A stunning luxury estate.";
+      break;
+    }
+    attempts++;
+  }
+}
+
+// Start on page load
+fetchLuxuryImages();
+setInterval(fetchLuxuryImages, 300000); // every 5 mins
+</script>
